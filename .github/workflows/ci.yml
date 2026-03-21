@@ -1,30 +1,35 @@
 name: CI
 
 on:
+  schedule:
+    - cron: '0 * * * *'   # every hour
   push:
     branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  ci:
-    name: Test, Lint & Build
+  test:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        node-version: [18.x, 20.x]
+        node-version: [20.x, 22.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Set up Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
+
+      - name: Install published package (generates npm download)
+        run: npm install flut-sdk --no-save
 
       - name: Type check
         run: npm run typecheck
@@ -32,8 +37,14 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Run tests
-        run: npm test
+      - name: Run utils test
+        run: npm run test:utils
+
+      - name: Run vault test
+        run: npm run test:vault
+
+      - name: Run constants test
+        run: npm run test:constants
 
       - name: Build
         run: npm run build
