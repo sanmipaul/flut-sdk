@@ -1,5 +1,3 @@
-import { StacksMainnet, StacksTestnet } from '@stacks/network';
-
 export type NetworkName = 'mainnet' | 'testnet';
 
 export interface FlutConfig {
@@ -22,13 +20,11 @@ const TESTNET_API = 'https://api.testnet.hiro.so';
 export function createFlutConfig(config: FlutConfig) {
   const contractName = config.contractName ?? DEFAULT_CONTRACT_NAME;
   const nftContractName = config.nftContractName ?? DEFAULT_NFT_CONTRACT_NAME;
-  const network = config.network === 'mainnet' ? new StacksMainnet() : new StacksTestnet();
   const stacksApiUrl =
     config.stacksApiUrl ?? (config.network === 'mainnet' ? MAINNET_API : TESTNET_API);
 
   return {
-    network,
-    networkName: config.network,
+    network: config.network as NetworkName,
     contractAddress: config.contractAddress,
     contractName,
     nftContractName,
