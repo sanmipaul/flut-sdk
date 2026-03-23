@@ -1,3 +1,5 @@
+import { MS_PER_BLOCK } from '../constants';
+
 export interface Vault {
   vaultId: number;
   creator: string;
@@ -25,7 +27,7 @@ export function blocksRemaining(vault: Vault, currentBlock: number): number {
   return Math.max(0, vault.unlockHeight - currentBlock);
 }
 
-/** Rough estimate: 1 Stacks block ≈ 10 minutes (anchored to Bitcoin) */
+/** Convert a block count to milliseconds using the canonical MS_PER_BLOCK constant. */
 export function blocksToMs(blocks: number): number {
-  return blocks * 10 * 60 * 1000;
+  return blocks * MS_PER_BLOCK;
 }

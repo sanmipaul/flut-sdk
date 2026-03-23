@@ -18,6 +18,9 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:utils": "vitest run tests/utils.test.ts",
+    "test:vault": "vitest run tests/vault.test.ts",
+    "test:constants": "vitest run tests/constants.test.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests --ext .ts",
     "prepublishOnly": "npm run build"

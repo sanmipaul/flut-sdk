@@ -67,16 +67,55 @@ export async function fetchBlockHeight(config: ResolvedFlutConfig): Promise<numb
 }
 
 /**
+ * Run an array of async tasks with a maximum concurrency limit.
+ * Preserves result order relative to the input tasks array.
+ */
+async function withConcurrency<T>(tasks: (() => Promise<T>)[], limit: number): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  let next = 0;
+
+  async function worker() {
+    while (next < tasks.length) {
+      const i = next++;
+      results[i] = await tasks[i]();
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, worker));
+  return results;
+}
+
+/**
+ * Fetch a page of vaults by offset and limit.
+ * Useful for paginated UIs or incremental scanning without loading all vaults at once.
+ *
+ * @param offset - First vault ID to fetch (inclusive)
+ * @param limit  - Maximum number of vaults to fetch
+ */
+export async function fetchVaultPage(
+  config: ResolvedFlutConfig,
+  offset: number,
+  limit: number,
+): Promise<Vault[]> {
+  const ids = Array.from({ length: limit }, (_, i) => offset + i);
+  const results = await Promise.all(ids.map((id) => fetchVault(config, id)));
+  return results.filter((v): v is Vault => v !== null);
+}
+
+/**
  * Fetch all vaults belonging to a given Stacks address.
- * Scans all vault IDs up to the current count.
+ * Scans all vault IDs up to the current count with a bounded concurrency to
+ * avoid overwhelming the Stacks API with hundreds of simultaneous requests.
+ *
+ * @param concurrency - Maximum number of in-flight requests at once (default: 10)
  */
 export async function fetchVaultsForUser(
   config: ResolvedFlutConfig,
   address: string,
+  concurrency = 10,
 ): Promise<Vault[]> {
   const count = await fetchVaultCount(config);
-  const results = await Promise.all(
-    Array.from({ length: count }, (_, i) => fetchVault(config, i)),
-  );
+  const tasks = Array.from({ length: count }, (_, i) => () => fetchVault(config, i));
+  const results = await withConcurrency(tasks, concurrency);
   return results.filter((v): v is Vault => v !== null && v.creator === address);
 }
