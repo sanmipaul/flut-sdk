@@ -54,7 +54,7 @@ export function formatDuration(blocks: number): string {
 /**
  * Validate a Stacks principal address (standard or contract).
  * Accepts mainnet (SP, SM) and testnet (ST, SN) prefixes.
- * Contract principals in the form "SP…​.contract-name" are also accepted.
+ * Contract principals in the form "SP...contract-name" are also accepted.
  */
 export function validateAddress(address: string): boolean {
   if (typeof address !== 'string' || address.length === 0) return false;
